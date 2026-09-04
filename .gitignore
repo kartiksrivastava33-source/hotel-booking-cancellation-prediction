@@ -11,3 +11,5 @@ venv/
 
 # Dataset
 hotel_bookings.csv
+
+hotel_cancellation_model.pkl
