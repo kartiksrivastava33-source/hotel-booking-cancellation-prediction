@@ -1,7 +1,8 @@
 from fastapi.testclient import TestClient
-from app import app
+import app
 
-client = TestClient(app)
+
+client = TestClient(app.app)
 
 
 valid_booking = {
@@ -34,6 +35,17 @@ valid_booking = {
     "total_of_special_requests": 0,
     "has_agent": 1
 }
+
+
+import numpy as np
+
+
+class FakeModel:
+    def predict_proba(self, data):
+        return np.array([[0.2, 0.8]])
+
+
+app.model = FakeModel()
 
 
 def test_home():
