@@ -13,3 +13,5 @@ venv/
 hotel_bookings.csv
 
 hotel_cancellation_model.pkl
+
+predictions.db

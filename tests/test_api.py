@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 import app
+import numpy as np
 
 
 client = TestClient(app.app)
@@ -37,10 +38,12 @@ valid_booking = {
 }
 
 
-import numpy as np
-
+# --------------------------------------------------
+# Fake model for testing
+# --------------------------------------------------
 
 class FakeModel:
+
     def predict_proba(self, data):
         return np.array([[0.2, 0.8]])
 
@@ -48,7 +51,12 @@ class FakeModel:
 app.model = FakeModel()
 
 
+# --------------------------------------------------
+# Tests
+# --------------------------------------------------
+
 def test_home():
+
     response = client.get("/")
 
     assert response.status_code == 200
@@ -56,19 +64,28 @@ def test_home():
 
 
 def test_valid_prediction():
-    response = client.post("/predict", json=valid_booking)
+
+    response = client.post(
+        "/predict",
+        json=valid_booking
+    )
 
     assert response.status_code == 200
 
     result = response.json()
 
+    assert "prediction_id" in result
     assert "cancellation_probability" in result
     assert "risk_level" in result
     assert "recommendation" in result
 
 
 def test_probability_range():
-    response = client.post("/predict", json=valid_booking)
+
+    response = client.post(
+        "/predict",
+        json=valid_booking
+    )
 
     probability = response.json()["cancellation_probability"]
 
@@ -76,18 +93,39 @@ def test_probability_range():
 
 
 def test_invalid_input():
+
     invalid_booking = valid_booking.copy()
+
     invalid_booking["lead_time"] = "hello"
 
-    response = client.post("/predict", json=invalid_booking)
+    response = client.post(
+        "/predict",
+        json=invalid_booking
+    )
 
     assert response.status_code == 422
 
 
 def test_missing_field():
+
     incomplete_booking = valid_booking.copy()
+
     del incomplete_booking["hotel"]
 
-    response = client.post("/predict", json=incomplete_booking)
+    response = client.post(
+        "/predict",
+        json=incomplete_booking
+    )
 
     assert response.status_code == 422
+
+
+def test_prediction_history():
+
+    response = client.get("/predictions")
+
+    assert response.status_code == 200
+
+    predictions = response.json()
+
+    assert isinstance(predictions, list)
